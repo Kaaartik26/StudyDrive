@@ -12,31 +12,31 @@ Students can upload and download files, while admins control folders and file ma
 🚀 Features
 👤 User
 
-view folders
+1.view folders
 
-view files inside folders
+2.view files inside folders
 
-upload files
+3.upload files
 
-download files
+4.download files
 
-cannot delete anything
+5.cannot delete anything
 
-cannot create folders
+6.cannot create folders
 
 🔐 Admin
 
-create folders
+1.create folders
 
-delete folders
+2.delete folders
 
-upload files
+3.upload files
 
-delete any file
+4.delete any file
 
-view everything
+5.view everything
 
-logout session
+6.logout session
 
 🛠 Tech Stack
 
