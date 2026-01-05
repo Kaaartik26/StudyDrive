@@ -9,9 +9,9 @@ Students can upload and download files, while admins control folders and file ma
 ✔️ JSON used for metadata
 ✔️ Role-based access (Admin & User)
 
-🚀 Features
+🚀 **Features**
 
-👤 User
+👤 User(Student)
 
 1.view folders
 
@@ -39,7 +39,7 @@ Students can upload and download files, while admins control folders and file ma
 
 6.logout session
 
-🛠 Tech Stack
+🛠 **Tech Stack**
 
 Python Flask
 
@@ -63,19 +63,19 @@ file_meta.json
 
 No SQL / No ORM / No external DB.
 
-🧭 Use Cases
+🧭 **Use Cases**
 
-college programming labs
+1.college programming labs
 
-sharing lab solutions
+2.sharing lab solutions
 
-internal file distribution
+3.internal file distribution
 
-quick departmental file board
+4.quick departmental file board
 
-hackathons & mini-projects
+5.hackathons & mini-projects
 
-▶️ How to run
+▶️ **How to run**
 pip install flask
 python app.py
 
@@ -90,7 +90,7 @@ admin123
 
 Change it in app.py before real-world use.
 
-🚧 Future Enhancements
+🚧 **Future Enhancements**
 
 file preview (PDF / code highlight)
 
@@ -102,7 +102,7 @@ per-user upload limits
 
 deployment guide (Railway / Render)
 
-🏁 Why I built this
+🏁 **Why I built this**
 
 I wanted a simple classroom file-sharing system:
 
