@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-app.secret_key = "super-secret-key"  # needed for sessions
+app.secret_key = "secret-key"  
 
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
