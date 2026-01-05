@@ -1,4 +1,4 @@
-📂 StudyDrive – Simple File Sharing System (Flask, No Database)
+**📂 StudyDrive – Simple File Sharing System (Flask, No Database)**
 
 A minimal Google-Drive–like web application designed for college labs and classrooms.
 Students can upload and download files, while admins control folders and file management.
