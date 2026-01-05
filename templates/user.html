@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Drive</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --sidebar: #1e293b;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --border: #334155;
+      --text: #f8fafc;
+      --primary: #6366f1;
+      --accent: #8b5cf6;
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+    h1 {
+      font-size: 28px;
+      background: linear-gradient(to right, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+      font-weight: 700;
+    }
+    .back-link {
+      background: rgba(255,255,255,0.1);
+      padding: 10px 20px;
+      border-radius: 30px;
+      text-decoration: none;
+      color: white;
+      font-size: 14px;
+      transition: .2s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .back-link:hover { background: rgba(255,255,255,0.2); }
+
+    /* Search */
+    .search-wrapper { position: relative; max-width: 500px; margin-bottom: 30px; }
+    .search-bar {
+      width: 100%;
+      padding: 15px 20px 15px 50px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--sidebar);
+      color: white;
+      font-family: inherit;
+      font-size: 16px;
+      outline: none;
+    }
+    .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+    .search-icon { position: absolute; left: 18px; top: 16px; color: #94a3b8; }
+
+    /* Grids */
+    .folder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .folder-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .folder-card:hover {
+      transform: translateY(-8px);
+      background: rgba(51, 65, 85, 0.8);
+      border-color: var(--primary);
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    }
+    .folder-icon { font-size: 48px; margin-bottom: 15px; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
+    .folder-name { font-weight: 600; font-size: 18px; color: #f1f5f9; }
+    
+    /* File View */
+    .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .file-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: .2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .file-card:hover { transform: translateY(-3px); border-color: #64748b; }
+    
+    .file-header { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 15px; }
+    .file-icon { font-size: 28px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.05); }
+    
+    /* Icon Colors */
+    .pdf { color: #f87171; background: rgba(248, 113, 113, 0.1); }
+    .doc { color: #60a5fa; background: rgba(96, 165, 250, 0.1); }
+    .ppt { color: #fb923c; background: rgba(251, 146, 60, 0.1); }
+    .img { color: #a78bfa; background: rgba(167, 139, 250, 0.1); }
+    
+    .file-details { flex: 1; min-width: 0; }
+    .file-title { font-weight: 600; font-size: 15px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-meta { font-size: 13px; color: #94a3b8; }
+    
+    .btn-download {
+      margin-top: auto;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: .2s;
+    }
+    .btn-download:hover { background: #4f46e5; }
+    
+    /* Upload Button styling in User View (matches theme) */
+    .upload-area { margin: 20px 0; padding: 20px; border: 2px dashed #334155; border-radius: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .btn-success { background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    input[type=file] { color: #cbd5e1; }
+
+    .breadcrumbs { margin-bottom: 20px; color: #94a3b8; }
+    .breadcrumbs span { color: white; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1><i class="fas fa-graduation-cap"></i> Study Drive</h1>
+    <a href="/role" class="back-link">Back to Menu</a>
+  </header>
+
+  <div id="folderView">
+    <h2 style="margin-bottom:10px;">Your Subjects</h2>
+    <p style="color:#94a3b8; margin-bottom:30px;">Select a subject to browse materials.</p>
+    
+    <div class="folder-grid">
+      {% for f in folders %}
+      <div class="folder-card" onclick="openFolder('{{f}}')">
+        <span class="folder-icon">📚</span>
+        <div class="folder-name">{{f}}</div>
+      </div>
+      {% endfor %}
+      
+      {% if not folders %}
+      <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color:#64748b;">
+        <i class="fas fa-ghost" style="font-size:40px; margin-bottom:15px; display:block;"></i>
+        No subjects yet. Time to relax! 😴
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div id="fileView" style="display:none">
+    
+    <button class="back-link" onclick="backToFolders()" style="display:inline-block; margin-bottom:20px;">
+      <i class="fas fa-arrow-left"></i> All Subjects
+    </button>
+    
+    <div class="breadcrumbs">
+      Subjects / <span id="folderTitle"></span>
+    </div>
+
+    <div class="search-wrapper">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" class="search-bar" placeholder="Search files in this subject..." id="fileSearch">
+    </div>
+
+    <div class="upload-area">
+      <form id="uploadForm" enctype="multipart/form-data" style="width:100%; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <i class="fas fa-cloud-upload-alt" style="font-size:24px; color:#94a3b8;"></i>
+        <input type="file" name="file" required>
+        <button class="btn-success" type="submit">Upload Material</button>
+      </form>
+    </div>
+
+    <h3 style="margin-bottom:20px;">Available Materials</h3>
+    <div id="fileGrid" class="file-grid"></div>
+  </div>
+
+</div>
+
+<script>
+  let currentFolder = null;
+
+  function openFolder(folder) {
+    currentFolder = folder;
+    document.getElementById("folderTitle").innerText = folder;
+    document.getElementById("folderView").style.display = "none";
+    document.getElementById("fileView").style.display = "block";
+    loadFiles();
+  }
+
+  function backToFolders() {
+    document.getElementById("fileView").style.display = "none";
+    document.getElementById("folderView").style.display = "block";
+    document.getElementById("fileSearch").value = "";
+  }
+
+  async function loadFiles() {
+    let res = await fetch("/files/" + currentFolder);
+    let data = await res.json();
+    let grid = document.getElementById("fileGrid");
+    grid.innerHTML = "";
+
+    if (!data.files || data.files.length === 0) {
+      grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#64748b;">No materials uploaded here yet.</p>`;
+      return;
+    }
+
+    data.files.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    data.files.forEach(f => {
+      const ext = f.original_filename.split('.').pop().toLowerCase();
+      let iconClass = "default";
+      let icon = "fa-file";
+      
+      if (["pdf"].includes(ext)) { iconClass = "pdf"; icon = "fa-file-pdf"; }
+      else if (["doc", "docx"].includes(ext)) { iconClass = "doc"; icon = "fa-file-word"; }
+      else if (["ppt", "pptx"].includes(ext)) { iconClass = "ppt"; icon = "fa-file-powerpoint"; }
+      else if (["jpg","jpeg","png","gif"].includes(ext)) { iconClass = "img"; icon = "fa-image"; }
+
+      let card = document.createElement("div");
+      card.className = "file-card";
+      card.innerHTML = `
+        <div class="file-header">
+          <i class="fas ${icon} file-icon ${iconClass}"></i>
+          <div class="file-details">
+            <div class="file-title" title="${f.original_filename}">${f.original_filename}</div>
+            <div class="file-meta">
+              ${(f.size / 1024).toFixed(1)} KB • ${new Date(f.timestamp).toLocaleDateString()}
+            </div>
+          </div>
+        </div>
+        <a href="/download/${f.folder}/${f.stored_filename}" style="text-decoration:none;">
+          <button class="btn-download"><i class="fas fa-download"></i> Download</button>
+        </a>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById("uploadForm").onsubmit = async (e) => {
+    e.preventDefault();
+    let form = new FormData(e.target);
+    let res = await fetch("/upload/" + currentFolder, {
+      method: "POST",
+      body: form
+    });
+    alert(await res.text());
+    e.target.reset();
+    loadFiles();
+  };
+
+  document.getElementById("fileSearch").addEventListener("input", function() {
+    const term = this.value.toLowerCase();
+    const cards = document.querySelectorAll("#fileGrid .file-card");
+    cards.forEach(card => {
+      const title = card.querySelector(".file-title").textContent.toLowerCase();
+      card.style.display = title.includes(term) ? "flex" : "none";
+    });
+  });
+</script>
+</body>
+</html>
