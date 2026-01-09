@@ -133,17 +133,15 @@ def delete_folder():
     path = os.path.join(app.config["UPLOAD_FOLDER"], folder_name)
 
     def handle_remove_error(func, path, exc):
-        # make read-only things writable and retry
+        
         try:
             os.chmod(path, stat.S_IWRITE)
             func(path)
         except Exception as e:
             print("force-delete failed:", e)
 
-    # 🚀 FORCE DELETE EVEN IF LOCKED / READONLY
     shutil.rmtree(path, onerror=handle_remove_error)
 
-    # update metadata
     meta["folders"].remove(folder_name)
     meta["files"] = [f for f in meta["files"] if f["folder"] != folder_name]
     save_metadata(meta)
@@ -242,4 +240,4 @@ def delete_file():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
