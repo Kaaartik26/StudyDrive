@@ -1,117 +1,138 @@
-# StudyDrive - Simple File Sharing System (Flask, No Database)
+# 📚 StudyDrive
 
-A minimal Google-Drive–like web application designed for college labs and classrooms.
-Students can upload and download files, while admins control folders and file management.
+A lightweight, secure **study material sharing platform** built with Flask that allows students to upload files and admins to manage them — without using any database.
 
-✔️ Flask backend
-✔️ No database required
-✔️ Files stored in server filesystem
-✔️ JSON used for metadata
-✔️ Role-based access (Admin & User)
+> Think of StudyDrive as a **private Google Drive for college notes**, optimized for simplicity and control.
 
-🚀 **Features**
+---
 
-👤 User(Student)
+## 🚀 Features
 
-1.view folders
+* 📤 Upload study materials (PDFs, docs, etc.)
+* 🔐 Admin-only authentication using environment variables
+* 🗂 Files stored directly on the **server file system**
+* ❌ Admin can delete incorrect or unwanted uploads
+* 🛡 Secure file handling (size limits, safe filenames)
+* 🧠 No database — minimal, fast, and easy to deploy
 
-2.view files inside folders
+---
 
-3.upload files
+## 🛠 Tech Stack
 
-4.download files
+| Layer    | Technology                      |
+| -------- | ------------------------------- |
+| Backend  | Flask (Python)                  |
+| Frontend | HTML, CSS, JavaScript           |
+| Auth     | Session-based authentication    |
+| Storage  | Server file system (`/uploads`) |
+| Config   | Environment variables           |
 
-5.cannot delete anything
+---
 
-6.cannot create folders
+## 🧩 System Architecture
 
-🔐 Admin
+```mermaid
+graph TD
+    U[User / Student] -->|Uploads File| F[Flask App]
+    A[Admin] -->|Login| F
+    F -->|Validates File| V[Validation Layer]
+    V -->|Stores File| S[Server File System /uploads]
+    A -->|Delete / Manage Files| S
+    F -->|Serve Files| U
+```
 
-1.create folders
+---
 
-2.delete folders
+## 🔄 How It Works
 
-3.upload files
+### 👤 User Flow
 
-4.delete any file
+1. User opens StudyDrive
+2. Uploads a study file
+3. File is validated (type & size)
+4. File is stored in `/uploads` directory
+5. File becomes available for viewing/downloading
 
-5.view everything
+### 🔑 Admin Flow
 
-6.logout session
+1. Admin logs in using password (from environment variable)
+2. Session is created
+3. Admin can view all uploaded files
+4. Admin can delete incorrect or unwanted files
 
-🛠 **Tech Stack**
+---
 
-Python Flask
+## 📂 File Storage Explained
 
-HTML, CSS, JavaScript
+All uploaded files are stored in:
 
-JSON for metadata persistence
+```
+/uploads
+```
 
-Server filesystem storage
+* During development → stored on **local machine**
+* After deployment → stored on **hosting server’s disk**
 
-🗂 How files are stored
-uploads/
- ├── DSA/
- ├── DBMS/
- └── OS/
+❌ Not stored in browser memory
+❌ Not stored in database
+❌ Not stored in cloud (yet)
 
+---
 
-Metadata file:
+## 🔐 Security Measures
 
-file_meta.json
+* `secure_filename()` to prevent path traversal
+* File size limits using `MAX_CONTENT_LENGTH`
+* Admin password stored in **environment variable**
+* Protected admin routes using decorators
 
+---
 
-No SQL / No ORM / No external DB.
+## ⚙️ Environment Variables
 
-🧭 **Use Cases**
+Create a `.env` file (not pushed to GitHub):
 
-1.college programming labs
+```env
+ADMIN_PASSWORD=your_secure_password
+SECRET_KEY=your_secret_key
+```
 
-2.sharing lab solutions
+---
 
-3.internal file distribution
+## ▶️ Run Locally
 
-4.quick departmental file board
-
-5.hackathons & mini-projects
-
-▶️ **How to run**
-pip install flask
+```bash
+git clone https://github.com/your-username/studydrive.git
+cd studydrive
+pip install -r requirements.txt
 python app.py
+```
 
+---
 
-Then open:
+## 🧠 Design Decisions
 
-http://127.0.0.1:5000/
+* **No database** → simpler architecture, faster development
+* **File-system storage** → direct control over files
+* **Admin-only moderation** → prevents misuse
 
-🔑 Default Admin Password
-admin123
+---
 
+## 🔮 Future Improvements
 
-Change it in app.py before real-world use.
+* ☁️ Cloud storage (AWS S3 / Firebase)
+* 📊 Upload analytics
+* 🧹 Auto-cleanup of old files
+* 👥 User roles & quotas
+* 🔍 File categorization and search
 
-🚧 **Future Enhancements**
+---
 
-file preview (PDF / code highlight)
+## 🧑‍💻 Author
 
-drag-and-drop uploads
+**Kartik Kamat**
+Built as a practical backend-focused project using Flask.
 
-search inside folders
+---
 
-per-user upload limits
-
-deployment guide (Railway / Render)
-
-🏁 **Why I built this**
-
-I wanted a simple classroom file-sharing system:
-
-no Google sign-in
-
-no database setup
-
-works offline on local network
-
-students can upload + download easily
-
-So I built this using Flask & JSON ✨
+⭐ If you like this project, consider giving it a star!
