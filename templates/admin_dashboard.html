@@ -111,14 +111,14 @@
   <div class="control-panel">
     <div class="panel-box">
       <h2><i class="fas fa-folder-plus"></i> Create New Folder</h2>
-      <form method="post" action="/create_folder">
+      <form method="post" action="/admin/create-folder">
         <input name="folder_name" placeholder="e.g. Physics 101">
         <button type="submit" class="btn-create">Create</button>
       </form>
     </div>
     <div class="panel-box">
       <h2><i class="fas fa-trash-alt"></i> Delete Folder</h2>
-      <form method="post" action="/delete_folder">
+      <form method="post" action="/admin/delete-folder">
         <input name="folder_name" placeholder="Folder Name">
         <button type="submit" class="btn-delete">Delete</button>
       </form>
@@ -218,7 +218,7 @@ document.getElementById("uploadForm").onsubmit = async (e)=>{
 
 async function deleteFile(folder, stored){
   if(!confirm("Delete this file?")) return;
-  let res = await fetch("/delete_file",{
+  let res = await fetch("/admin/delete_file",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body:JSON.stringify({

@@ -4,155 +4,130 @@ import stat
 import json
 import time
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for, session
+
+from flask import (
+    Flask, render_template, request, jsonify,
+    send_from_directory, redirect, session
+)
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
+
+from auth import auth_bp, login_required, admin_required
+
+# ------------------ App Config ------------------
+
+load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY")
 
-app.secret_key = "secret-key"  
+if not app.secret_key:
+    raise RuntimeError("SECRET_KEY not set in environment")
 
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+UPLOAD_FOLDER = "uploads"
+META_FILE = "file_meta.json"
 
-ALLOWED_EXTENSIONS = {'txt', 'c', 'cpp', 'py', 'java', 'md', 'pdf'}
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB
 
-ADMIN_PASSWORD = "admin123"  # change later
+ALLOWED_EXTENSIONS = {"txt", "c", "cpp", "py", "java", "md", "pdf"}
 
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Register auth blueprint
+app.register_blueprint(auth_bp)
 
 
-# ------------ helpers -------------
+# ------------------ Helpers ------------------
 
 def load_metadata():
-    try:
-        with open('file_meta.json', 'r') as f:
-            return json.load(f)
-    except:
+    if not os.path.exists(META_FILE):
         return {"folders": [], "files": []}
+    with open(META_FILE, "r") as f:
+        return json.load(f)
 
 
 def save_metadata(data):
-    with open('file_meta.json', 'w') as f:
+    with open(META_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
 
 def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and \
+        filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# ------------ role selection -------------
+# ------------------ DASHBOARDS ------------------
 
-@app.route("/")
-def home():
-    return redirect("/role")
-
-
-@app.route("/role")
-def role():
-    return render_template("role.html")
-
-
-# ------------ ADMIN LOGIN -------------
-
-@app.route("/admin_login", methods=["GET", "POST"])
-def admin_login():
-    if request.method == "POST":
-        password = request.form.get("password")
-
-        if password == ADMIN_PASSWORD:
-            session["is_admin"] = True
-            return redirect("/admin")
-
-        return render_template("admin_login.html", error="Wrong password")
-
-    return render_template("admin_login.html")
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/role")
-
-
-# ------------ ADMIN DASHBOARD -------------
-
-@app.route("/admin")
+@app.route("/admin/dashboard")
+@admin_required
 def admin_dashboard():
-    if not session.get("is_admin"):
-        return redirect("/role")
-
     metadata = load_metadata()
     return render_template("admin_dashboard.html", folders=metadata["folders"])
 
 
-# ------------ USER PAGE -------------
-
-@app.route("/user")
-def user_page():
+@app.route("/dashboard")
+@login_required
+def user_dashboard():
     metadata = load_metadata()
-    return render_template("user.html", folders=metadata["folders"])
+    return render_template("user_dashboard.html", folders=metadata["folders"])
 
 
-# ------------ ADMIN: CREATE FOLDER -------------
+# ------------------ ADMIN: CREATE FOLDER ------------------
 
-@app.route("/create_folder", methods=["POST"])
+@app.route("/admin/create-folder", methods=["POST"])
+@admin_required
 def create_folder():
-    if not session.get("is_admin"):
-        return jsonify({"error": "Admin only"}), 403
-
     folder_name = secure_filename(request.form.get("folder_name"))
+
+    if not folder_name:
+        return jsonify({"error": "Folder name required"}), 400
 
     metadata = load_metadata()
 
     if folder_name in metadata["folders"]:
         return jsonify({"error": "Folder exists"}), 400
 
-    os.makedirs(os.path.join(app.config["UPLOAD_FOLDER"], folder_name), exist_ok=True)
+    os.makedirs(os.path.join(UPLOAD_FOLDER, folder_name), exist_ok=True)
     metadata["folders"].append(folder_name)
     save_metadata(metadata)
 
     return jsonify({"message": "Folder created"})
 
 
-# ------------ ADMIN: DELETE FOLDER -------------
+# ------------------ ADMIN: DELETE FOLDER ------------------
 
-@app.route("/delete_folder", methods=["POST"])
+@app.route("/admin/delete-folder", methods=["POST"])
+@admin_required
 def delete_folder():
-    if not session.get("is_admin"):
-        return jsonify({"error": "Admin only"}), 403
-
     folder_name = request.form.get("folder_name")
-    if not folder_name:
-        return jsonify({"error": "Folder name required"}), 400
 
-    meta = load_metadata()
+    metadata = load_metadata()
 
-    if folder_name not in meta["folders"]:
+    if folder_name not in metadata["folders"]:
         return jsonify({"error": "Folder not found"}), 404
 
-    path = os.path.join(app.config["UPLOAD_FOLDER"], folder_name)
+    path = os.path.join(UPLOAD_FOLDER, folder_name)
 
     def handle_remove_error(func, path, exc):
-        
-        try:
-            os.chmod(path, stat.S_IWRITE)
-            func(path)
-        except Exception as e:
-            print("force-delete failed:", e)
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
 
     shutil.rmtree(path, onerror=handle_remove_error)
 
-    meta["folders"].remove(folder_name)
-    meta["files"] = [f for f in meta["files"] if f["folder"] != folder_name]
-    save_metadata(meta)
+    metadata["folders"].remove(folder_name)
+    metadata["files"] = [
+        f for f in metadata["files"] if f["folder"] != folder_name
+    ]
+    save_metadata(metadata)
 
     return jsonify({"message": "Folder deleted"})
 
 
-
-# ------------ FILE UPLOAD (ADMIN + USER) -------------
+# ------------------ FILE UPLOAD ------------------
 
 @app.route("/upload/<folder>", methods=["POST"])
+@login_required
 def upload_file(folder):
     metadata = load_metadata()
 
@@ -160,7 +135,7 @@ def upload_file(folder):
         return jsonify({"error": "Folder not found"}), 404
 
     if "file" not in request.files:
-        return jsonify({"error": "No file"}), 400
+        return jsonify({"error": "No file provided"}), 400
 
     file = request.files["file"]
 
@@ -173,7 +148,7 @@ def upload_file(folder):
     original = secure_filename(file.filename)
     stored = f"{int(time.time())}_{original}"
 
-    save_path = os.path.join(app.config["UPLOAD_FOLDER"], folder, stored)
+    save_path = os.path.join(UPLOAD_FOLDER, folder, stored)
     file.save(save_path)
 
     metadata["files"].append({
@@ -181,63 +156,72 @@ def upload_file(folder):
         "original_filename": original,
         "folder": folder,
         "timestamp": datetime.now().isoformat(),
-        "size": os.path.getsize(save_path)
+        "size": os.path.getsize(save_path),
+        "uploaded_by": session.get("role")
     })
 
     save_metadata(metadata)
-
     return jsonify({"message": "Uploaded"})
 
 
-# ------------ LIST FILES -------------
+# ------------------ FILE LIST ------------------
 
 @app.route("/files/<folder>")
-def files(folder):
-    meta = load_metadata()
+@login_required
+def list_files(folder):
+    metadata = load_metadata()
 
-    if folder not in meta["folders"]:
+    if folder not in metadata["folders"]:
         return jsonify({"error": "Folder not found"}), 404
 
     return jsonify({
-        "files": [f for f in meta["files"] if f["folder"] == folder]
+        "files": [f for f in metadata["files"] if f["folder"] == folder]
     })
 
 
-# ------------ DOWNLOAD -------------
+# ------------------ DOWNLOAD ------------------
 
-@app.route("/download/<folder>/<fname>")
-def download(folder, fname):
-    return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], folder), fname, as_attachment=True)
+@app.route("/download/<folder>/<filename>")
+@login_required
+def download_file(folder, filename):
+    return send_from_directory(
+        os.path.join(UPLOAD_FOLDER, folder),
+        filename,
+        as_attachment=True
+    )
 
 
-# ------------ ADMIN DELETE FILE -------------
+# ------------------ ADMIN: DELETE FILE ------------------
 
-@app.route("/delete_file", methods=["POST"])
+@app.route("/admin/delete-file", methods=["POST"])
+@admin_required
 def delete_file():
-    if not session.get("is_admin"):
-        return jsonify({"error": "Admin only"}), 403
-
     data = request.get_json()
     stored = data.get("stored_filename")
     folder = data.get("folder")
 
-    meta = load_metadata()
+    metadata = load_metadata()
 
-    entry = next((f for f in meta["files"] if f["stored_filename"] == stored and f["folder"] == folder), None)
+    entry = next(
+        (f for f in metadata["files"]
+         if f["stored_filename"] == stored and f["folder"] == folder),
+        None
+    )
 
     if not entry:
         return jsonify({"error": "File not found"}), 404
 
-    path = os.path.join(app.config["UPLOAD_FOLDER"], folder, stored)
-
+    path = os.path.join(UPLOAD_FOLDER, folder, stored)
     if os.path.exists(path):
         os.remove(path)
 
-    meta["files"].remove(entry)
-    save_metadata(meta)
+    metadata["files"].remove(entry)
+    save_metadata(metadata)
 
     return jsonify({"message": "File deleted"})
 
 
+# ------------------ RUN ------------------
+
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
