@@ -14,8 +14,6 @@ from dotenv import load_dotenv
 
 from auth import auth_bp, login_required, admin_required
 
-# ------------------ App Config ------------------
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -73,7 +71,7 @@ def user_dashboard():
     return render_template("user_dashboard.html", folders=metadata["folders"])
 
 
-# ------------------ ADMIN: CREATE FOLDER ------------------
+# Creating Folders
 
 @app.route("/admin/create-folder", methods=["POST"])
 @admin_required
@@ -95,7 +93,7 @@ def create_folder():
     return jsonify({"message": "Folder created"})
 
 
-# ------------------ ADMIN: DELETE FOLDER ------------------
+# Deleting Folders
 
 @app.route("/admin/delete-folder", methods=["POST"])
 @admin_required
@@ -124,7 +122,7 @@ def delete_folder():
     return jsonify({"message": "Folder deleted"})
 
 
-# ------------------ FILE UPLOAD ------------------
+# Uploading Files
 
 @app.route("/upload/<folder>", methods=["POST"])
 @login_required
@@ -164,7 +162,7 @@ def upload_file(folder):
     return jsonify({"message": "Uploaded"})
 
 
-# ------------------ FILE LIST ------------------
+# Listing Files
 
 @app.route("/files/<folder>")
 @login_required
@@ -179,7 +177,7 @@ def list_files(folder):
     })
 
 
-# ------------------ DOWNLOAD ------------------
+#Downloading Files
 
 @app.route("/download/<folder>/<filename>")
 @login_required
@@ -191,8 +189,7 @@ def download_file(folder, filename):
     )
 
 
-# ------------------ ADMIN: DELETE FILE ------------------
-
+#Deleting Files
 @app.route("/admin/delete-file", methods=["POST"])
 @admin_required
 def delete_file():
@@ -221,7 +218,6 @@ def delete_file():
     return jsonify({"message": "File deleted"})
 
 
-# ------------------ RUN ------------------
 
 if __name__ == "__main__":
     app.run(debug=True)
